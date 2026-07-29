@@ -18,6 +18,7 @@
     </div>
 
     <form class="screen" id="loginForm" onsubmit="return handleLogin(event)">
+      <div class="logo-mark" style="width:72px; height:72px; margin-bottom:16px;"><img src="icons/dog-mascot-cream.png" alt="Your Wedding Planner mascot" /></div>
       <p class="tagline" style="text-align:left; margin-bottom: 24px;">Welcome back.</p>
 
       <div class="field">
@@ -37,27 +38,26 @@
       <button type="submit" class="btn btn-primary">Log In</button>
 
       <div class="link-row" style="text-align:center; width:100%;">
-        New here? <a href="signup.html">Create an account</a>
+        New here? <a href="index.html">Start here</a>
       </div>
     </form>
   </div>
 
   <script src="js/app.js"></script>
   <script>
+    // Note: this page isn't linked from the main flow anymore — names are
+    // captured on index.html instead. There's no real backend auth here, so
+    // "logging in" only makes sense if a local session already exists; if
+    // not, send people to the real entry point rather than fabricating an
+    // account under someone else's name.
     function handleLogin(e) {
       e.preventDefault();
-      // Prototype: no real auth yet — logs in as existing account if present,
-      // otherwise creates a lightweight session so the flow can be tested.
       const state = WeddingApp.getState();
       if (!state.account) {
-        const email = document.getElementById('email').value.trim();
-        WeddingApp.updateState((s) => {
-          s.account = { names: 'Alex & Emma', email };
-          return s;
-        });
+        window.location.href = 'index.html';
+        return false;
       }
-      const s2 = WeddingApp.getState();
-      window.location.href = s2.onboarding.complete ? 'dashboard.html' : 'welcome.html';
+      window.location.href = state.onboarding.complete ? 'dashboard.html' : 'welcome.html';
       return false;
     }
   </script>
