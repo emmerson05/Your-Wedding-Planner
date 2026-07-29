@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Welcome · Your Wedding Planner</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#08A0FF" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <div class="screen screen-center">
+      <div class="logo-mark" style="width:80px; height:80px;"><img src="icons/dog-mascot-cream.png" alt="Your Wedding Planner mascot" /></div>
+      <h1 id="welcomeTitle" style="margin-top: 20px; font-size: 26px;">Welcome!</h1>
+      <p class="tagline">Congratulations on your engagement!<br />We're going to build your personal wedding planner.<br />This takes around five minutes.</p>
+      <p class="tagline" style="margin-top: 12px; font-weight: 600; color: var(--color-primary-dark);">Every recommendation from now on will be personalised to you.</p>
+
+      <div class="stack">
+        <button class="btn btn-primary" onclick="location.href='onboarding.html'">Let's Begin</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script>
+    WeddingApp.requireAccount();
+    const state = WeddingApp.getState();
+    if (state.account && state.account.names) {
+      document.getElementById('welcomeTitle').textContent = 'Welcome, ' + state.account.names + '!';
+    }
+    if (state.onboarding.complete) {
+      window.location.href = 'dashboard.html';
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Create Account · Your Wedding Planner</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#08A0FF" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <div class="topbar">
+      <button class="back-btn" onclick="location.href='index.html'">←</button>
+      <div class="topbar-title">Create Account</div>
+      <div style="width:36px;"></div>
+    </div>
+
+    <form class="screen" id="signupForm" onsubmit="return handleSignup(event)">
+      <p class="tagline" style="text-align:left; margin-bottom: 24px;">Let's get you set up — it only takes a minute.</p>
+
+      <div class="field">
+        <label for="names">Your name(s)</label>
+        <input type="text" id="names" placeholder="e.g. Alex & Emma" required />
+      </div>
+
+      <div class="field">
+        <label for="email">Email</label>
+        <input type="email" id="email" placeholder="you@example.com" required />
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="Create a password" required minlength="6" />
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="margin-top: 8px;">Create Account</button>
+
+      <div class="link-row" style="text-align:center; width:100%;">
+        Already have an account? <a href="login.html">Log in</a>
+      </div>
+    </form>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script>
+    function handleSignup(e) {
+      e.preventDefault();
+      const names = document.getElementById('names').value.trim();
+      const email = document.getElementById('email').value.trim();
+
+      WeddingApp.updateState((state) => {
+        state.account = { names, email };
+        return state;
+      });
+
+      window.location.href = 'welcome.html';
+      return false;
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Dashboard · Your Wedding Planner</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#08A0FF" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <div class="topbar">
+      <div>
+        <div class="topbar-title" id="coupleNames">Your Wedding</div>
+      </div>
+      <button class="back-btn" onclick="location.href='settings.html'">⚙️</button>
+    </div>
+
+    <div class="scroll-content">
+      <div class="card" style="text-align:center; background: linear-gradient(135deg, var(--color-primary), var(--color-accent)); color: white;">
+        <div style="font-size: 13px; opacity:0.9; font-weight:600; text-transform:uppercase; letter-spacing:0.05em;">Countdown</div>
+        <div id="countdownDays" style="font-family: var(--font-heading); font-size: 40px; margin: 6px 0;">— Days To Go</div>
+        <div class="progress-track" style="background: rgba(255,255,255,0.35);">
+          <div class="progress-fill" id="planProgressFill" style="background: white;"></div>
+        </div>
+        <div style="font-size:13px; margin-top:6px; opacity:0.9;">Planning Progress: <span id="planProgressPct">0%</span></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Today's Tasks</div>
+        <div id="taskList"></div>
+        <button class="btn btn-ghost" style="padding:8px 0; justify-content:flex-start;" onclick="alert('Full task manager coming in the next build.')">See all tasks →</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Budget</div>
+        <div style="font-size: 20px; font-weight: 700;" id="budgetLine">£0 / £0</div>
+        <div class="progress-track" style="margin-top:10px;"><div class="progress-fill" id="budgetFill"></div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Guests</div>
+        <div style="display:flex; justify-content:space-between;">
+          <div><div style="font-size:22px; font-weight:700;" id="guestsDay">0</div><div style="font-size:13px; color:var(--color-text-muted);">Day</div></div>
+          <div><div style="font-size:22px; font-weight:700;" id="guestsEvening">0</div><div style="font-size:13px; color:var(--color-text-muted);">Evening</div></div>
+        </div>
+      </div>
+
+      <div class="card" id="aiCard">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+          <div class="mascot-avatar"><img src="icons/dog-mascot-cream.png" alt="Your wedding planning assistant" /></div>
+          <div class="card-title" style="margin-bottom:0;">Ask Your Wedding Planner</div>
+        </div>
+        <div id="aiSuggestion" style="font-size:14px; line-height:1.5; color:var(--color-text); margin-bottom:12px;"></div>
+        <input type="text" placeholder="Ask me anything about your wedding…" style="width:100%; padding:14px 16px; border-radius:12px; border:1.5px solid var(--color-border); font-size:15px;" onclick="alert('AI chat is next up in the build — this input will connect to your planning assistant.')" readonly />
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script>
+    WeddingApp.requireAccount();
+    WeddingApp.requireOnboarding();
+    const state = WeddingApp.getState();
+
+    document.getElementById('coupleNames').textContent = (state.account && state.account.names) || 'Your Wedding';
+
+    const days = WeddingApp.daysUntil(state.weddingDate || state.onboarding.answers.weddingDate);
+    document.getElementById('countdownDays').textContent = (days !== null ? days : '—') + ' Days To Go';
+
+    const doneCount = state.tasks.filter(t => t.done).length;
+    const pct = Math.round((doneCount / state.tasks.length) * 100);
+    document.getElementById('planProgressFill').style.width = pct + '%';
+    document.getElementById('planProgressPct').textContent = pct + '%';
+
+    const taskList = document.getElementById('taskList');
+    state.tasks.slice(0, 4).forEach(t => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex; align-items:center; gap:10px; padding:8px 0; font-size:14px;';
+      row.innerHTML = `<span style="font-size:16px;">${t.done ? '✅' : '⬜'}</span><span style="${t.done ? 'text-decoration:line-through; color:var(--color-text-muted);' : ''}">${t.label}</span>`;
+      taskList.appendChild(row);
+    });
+
+    document.getElementById('budgetLine').textContent = `${WeddingApp.formatCurrency(state.budget.spent)} / ${WeddingApp.formatCurrency(state.budget.total)}`;
+    document.getElementById('budgetFill').style.width = Math.min(100, Math.round((state.budget.spent / state.budget.total) * 100)) + '%';
+
+    document.getElementById('guestsDay').textContent = state.guests.day || 0;
+    document.getElementById('guestsEvening').textContent = state.guests.evening || 0;
+
+    // Simple rule-based "AI" suggestion for the prototype — swap for real model output later
+    function buildSuggestion() {
+      const spentPct = state.budget.spent / state.budget.total;
+      const bookedSuppliers = state.suppliers.filter(s => s.status === 'Booked').length;
+      if (days !== null && days < 200 && spentPct > 0.4 && pct < 0.5) {
+        return `You've spent ${Math.round(spentPct*100)}% of your budget but only completed ${pct}% of your planning — want to review your spending?`;
+      }
+      if (bookedSuppliers > 0) {
+        return `Your venue is booked — shall we start shortlisting photographers who regularly work there?`;
+      }
+      return `With ${days ?? '—'} days to go, a great next step is confirming your guest list so invitations can go out on time.`;
+    }
+    document.getElementById('aiSuggestion').textContent = buildSuggestion();
+
+    WeddingApp.renderBottomNav('dashboard');
+  </script>
+</body>
+</html>

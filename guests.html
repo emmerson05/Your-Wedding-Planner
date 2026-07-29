@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Guests · Your Wedding Planner</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#08A0FF" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <div class="topbar">
+      <div class="topbar-title">Guest List</div>
+      <button class="back-btn" onclick="openAddGuest()">+</button>
+    </div>
+
+    <div class="scroll-content">
+      <div class="card" style="text-align:center;">
+        <div class="card-title">Rough Headcount (from onboarding)</div>
+        <div style="display:flex; justify-content:space-around;">
+          <div><div style="font-size:20px; font-weight:700;" id="roughDay">0</div><div style="font-size:12px; color:var(--color-text-muted);">Day</div></div>
+          <div><div style="font-size:20px; font-weight:700;" id="roughEvening">0</div><div style="font-size:12px; color:var(--color-text-muted);">Evening</div></div>
+        </div>
+      </div>
+
+      <div class="card" style="display:flex; justify-content:space-around; text-align:center;">
+        <div><div style="font-size:22px; font-weight:700;" id="invitedCount">0</div><div style="font-size:12px; color:var(--color-text-muted);">On list</div></div>
+        <div><div style="font-size:22px; font-weight:700; color:var(--color-success);" id="confirmedCount">0</div><div style="font-size:12px; color:var(--color-text-muted);">Confirmed</div></div>
+        <div><div style="font-size:22px; font-weight:700; color:var(--color-text-muted);" id="pendingCount">0</div><div style="font-size:12px; color:var(--color-text-muted);">Pending</div></div>
+      </div>
+
+      <div class="card" id="addGuestCard" style="display:none;">
+        <div class="card-title">Add Guest</div>
+        <div class="field"><input type="text" id="guestName" placeholder="Guest name" style="width:100%; padding:14px; border-radius:12px; border:1.5px solid var(--color-border); font-size:16px;" /></div>
+        <button class="btn btn-primary" onclick="addGuest()">Add to List</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Guest List</div>
+        <div id="guestListItems"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script>
+    WeddingApp.requireAccount();
+    WeddingApp.requireOnboarding();
+
+    // Ensure a guest list array exists (older sessions only stored counts)
+    let state = WeddingApp.updateState((s) => {
+      if (!Array.isArray(s.guestList)) {
+        s.guestList = [
+          { name: 'John & Sarah Miller', status: 'confirmed' },
+          { name: 'The Thompson Family', status: 'confirmed' },
+          { name: 'Priya Patel', status: 'pending' },
+          { name: 'Marcus Chen', status: 'pending' }
+        ];
+      }
+      return s;
+    });
+
+    function openAddGuest() {
+      document.getElementById('addGuestCard').style.display = 'block';
+    }
+
+    function addGuest() {
+      const name = document.getElementById('guestName').value.trim();
+      if (!name) return;
+      WeddingApp.updateState((s) => {
+        s.guestList.push({ name, status: 'pending' });
+        s.guests.invited += 1;
+        return s;
+      });
+      document.getElementById('guestName').value = '';
+      document.getElementById('addGuestCard').style.display = 'none';
+      render();
+    }
+
+    function toggleStatus(idx) {
+      WeddingApp.updateState((s) => {
+        s.guestList[idx].status = s.guestList[idx].status === 'confirmed' ? 'pending' : 'confirmed';
+        s.guests.confirmed = s.guestList.filter(g => g.status === 'confirmed').length;
+        return s;
+      });
+      render();
+    }
+
+    function render() {
+      state = WeddingApp.getState();
+      document.getElementById('roughDay').textContent = state.guests.day || 0;
+      document.getElementById('roughEvening').textContent = state.guests.evening || 0;
+      document.getElementById('invitedCount').textContent = state.guestList.length;
+      const confirmed = state.guestList.filter(g => g.status === 'confirmed').length;
+      document.getElementById('confirmedCount').textContent = confirmed;
+      document.getElementById('pendingCount').textContent = state.guestList.length - confirmed;
+
+      const list = document.getElementById('guestListItems');
+      list.innerHTML = '';
+      state.guestList.forEach((g, idx) => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--color-border);';
+        const badge = g.status === 'confirmed' ? '✅ Confirmed' : '⏳ Pending';
+        row.innerHTML = `<span>${g.name}</span><button class="btn-ghost" style="font-size:12px; font-weight:600; border:none; background:none; cursor:pointer; color:${g.status==='confirmed' ? 'var(--color-success)' : 'var(--color-text-muted)'};">${badge}</button>`;
+        row.querySelector('button').onclick = () => toggleStatus(idx);
+        list.appendChild(row);
+      });
+    }
+
+    render();
+    WeddingApp.renderBottomNav('guests');
+  </script>
+</body>
+</html>

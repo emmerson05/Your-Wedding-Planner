@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Suppliers · Your Wedding Planner</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#08A0FF" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <div class="topbar">
+      <div class="topbar-title">Suppliers</div>
+      <div style="width:36px;"></div>
+    </div>
+
+    <div class="scroll-content">
+      <div id="supplierList"></div>
+      <button class="btn btn-secondary" onclick="alert('AI supplier finder is a Phase 2 feature — coming after the MVP.')">+ Find a Supplier</button>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script>
+    WeddingApp.requireAccount();
+    WeddingApp.requireOnboarding();
+    const state = WeddingApp.getState();
+
+    const statusColor = {
+      'Booked': 'var(--color-success)',
+      'Shortlisted': 'var(--color-accent)',
+      'Contacted': 'var(--color-primary)',
+      'Not started': 'var(--color-text-muted)'
+    };
+
+    const list = document.getElementById('supplierList');
+    state.suppliers.forEach(s => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <div>
+            <div style="font-size:12px; color:var(--color-text-muted); font-weight:600; text-transform:uppercase; letter-spacing:0.03em;">${s.category}</div>
+            <div style="font-size:17px; font-weight:700; margin-top:4px;">${s.name}</div>
+          </div>
+          <div style="font-size:12px; font-weight:700; padding:6px 10px; border-radius:999px; background:${statusColor[s.status]}22; color:${statusColor[s.status]};">${s.status}</div>
+        </div>
+      `;
+      list.appendChild(card);
+    });
+
+    WeddingApp.renderBottomNav('suppliers');
+  </script>
+</body>
+</html>

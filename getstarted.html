@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>You're All Set · Your Wedding Planner</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#08A0FF" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    .module-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .module-card {
+      position: relative;
+      background: var(--color-surface);
+      border-radius: var(--radius-md);
+      padding: 16px 14px;
+      box-shadow: var(--shadow-sm);
+      text-align: left;
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+    .module-card:active { transform: scale(0.97); }
+    .module-card.disabled { opacity: 0.55; cursor: default; }
+    .module-icon { font-size: 22px; }
+    .module-name { font-weight: 700; font-size: 14px; margin-top: 8px; }
+    .module-badge {
+      position: absolute; top: 10px; right: 10px;
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      background: var(--color-border); color: var(--color-text-muted);
+      padding: 3px 7px; border-radius: 999px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <div class="scroll-content" style="padding-top: 32px;">
+      <div style="text-align:center;">
+        <div class="logo-mark" style="width:84px; height:84px;"><img src="icons/dog-mascot-cream.png" alt="Your Wedding Planner mascot" /></div>
+        <h1 style="font-size: 26px; margin-top: 16px;" id="excitedTitle">Woohoo!</h1>
+        <p class="tagline">We're so excited to start planning with you.</p>
+      </div>
+
+      <div class="card" style="margin-top:24px;">
+        <div class="card-title">How this works</div>
+        <p style="font-size:14px; line-height:1.6;">Your <strong>dashboard</strong> keeps everything in one place — countdown, budget, guests and tasks. Dive into any <strong>module</strong> below whenever you're ready for more detail, and we'll chip in with reminders and ideas as your big day gets closer.</p>
+      </div>
+
+      <div class="card" style="text-align:center;" id="countdownCard">
+        <div class="card-title">Your Countdown</div>
+        <div style="font-family: var(--font-heading); font-size: 32px;" id="daysToGo">—</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Stay In The Loop</div>
+        <p style="font-size:13px; color:var(--color-text-muted); margin-bottom:12px;">Turn on notifications so we can nudge you with reminders and timely suggestions.</p>
+        <button class="btn btn-secondary" id="notifBtn" onclick="enableNotifications()">Enable Notifications</button>
+      </div>
+
+      <div class="card-title" style="margin-top: 8px;">Your Modules</div>
+      <div class="module-grid" id="moduleGrid"></div>
+
+      <button class="btn btn-primary" style="margin-top: 28px;" onclick="location.href='dashboard.html'">Take Me To My Dashboard</button>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script>
+    WeddingApp.requireAccount();
+    WeddingApp.requireOnboarding();
+    const state = WeddingApp.getState();
+
+    const names = (state.account && state.account.names) || 'there';
+    document.getElementById('excitedTitle').textContent = `Woohoo, ${names}!`;
+
+    const days = WeddingApp.daysUntil(state.weddingDate);
+    document.getElementById('daysToGo').textContent = days !== null ? `${days} days to go` : "Date TBC — no rush!";
+
+    const modules = [
+      { icon: '💰', name: 'Budget', page: 'budget.html', live: true },
+      { icon: '👥', name: 'Guest List', page: 'guests.html', live: true },
+      { icon: '🏛️', name: 'Suppliers & Venue', page: 'suppliers.html', live: true },
+      { icon: '📁', name: 'Documents', page: 'documents.html', live: true },
+      { icon: '🍽️', name: 'Dining', page: null, live: false },
+      { icon: '🎶', name: 'Entertainment', page: null, live: false },
+      { icon: '💌', name: 'Invitations', page: null, live: false },
+      { icon: '🎨', name: 'Style & Theme', page: null, live: false }
+    ];
+
+    const grid = document.getElementById('moduleGrid');
+    modules.forEach((m) => {
+      const card = document.createElement('div');
+      card.className = 'module-card' + (m.live ? '' : ' disabled');
+      card.innerHTML = `
+        ${!m.live ? '<div class="module-badge">Soon</div>' : ''}
+        <div class="module-icon">${m.icon}</div>
+        <div class="module-name">${m.name}</div>
+      `;
+      if (m.live) {
+        card.onclick = () => { window.location.href = m.page; };
+      } else {
+        card.onclick = () => alert(`${m.name} is on the way — this module will get its own deep-dive questions soon.`);
+      }
+      grid.appendChild(card);
+    });
+
+    function enableNotifications() {
+      if (!('Notification' in window)) {
+        alert('This browser prototype doesn\'t support notifications yet — this will work once the app is installed.');
+        return;
+      }
+      Notification.requestPermission().then((perm) => {
+        WeddingApp.updateState((s) => { s.notificationsEnabled = perm === 'granted'; return s; });
+        document.getElementById('notifBtn').textContent = perm === 'granted' ? '✅ Notifications On' : 'Maybe later';
+      }).catch(() => {
+        alert('Could not request notification permission in this environment — this will work once deployed.');
+      });
+    }
+  </script>
+</body>
+</html>
