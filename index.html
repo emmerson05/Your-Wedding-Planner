@@ -20,72 +20,32 @@
 </head>
 <body>
   <div class="app-shell">
-    <div class="screen screen-center" id="screenContent">
-      <!-- populated by script -->
+    <div class="screen screen-center">
+      <div class="logo-mark"><img src="icons/dog-mascot-cream.png" alt="Rag, your wedding planning mascot" /></div>
+
+      <h1 style="margin-top: 24px; font-size: 28px;">Your Wedding Planner</h1>
+      <p class="tagline">Plan your wedding with confidence.<br />Your personal wedding planning companion.</p>
+
+      <div class="stack">
+        <button class="btn btn-primary" onclick="location.href='signup.html'">Sign Up</button>
+        <button class="btn btn-secondary" onclick="location.href='login.html'">Log In</button>
+      </div>
     </div>
   </div>
 
   <script src="js/app.js"></script>
   <script>
+    // If a session already exists on this device, skip the splash and
+    // resume wherever they left off rather than making them choose again.
     const state = WeddingApp.getState();
-    const content = document.getElementById('screenContent');
-
-    function renderNewUser() {
-      content.innerHTML = `
-        <div class="logo-mark"><img src="icons/dog-mascot-cream.png" alt="Rag, your wedding planning mascot" /></div>
-
-        <h1 style="margin-top: 20px; font-size: 24px;">Meet Rag</h1>
-        <p class="tagline">Your wedding planning sidekick. Rag's here to help you plan the perfect day — keeping things on track, on time, and within budget.</p>
-        <p class="tagline" style="font-weight:700; color:var(--color-primary-dark); margin-top:10px;">Let's enjoy the journey together!</p>
-
-        <form id="namesForm" style="width:100%; margin-top:28px; text-align:left;">
-          <p style="font-weight:700; margin-bottom:16px;">First... who's the happy couple?</p>
-          <div class="field">
-            <label for="p1">Your name</label>
-            <input type="text" id="p1" placeholder="e.g. Alex" required />
-          </div>
-          <div class="field" style="margin-bottom:8px;">
-            <label for="p2">Partner's name</label>
-            <input type="text" id="p2" placeholder="e.g. Emma" required />
-          </div>
-          <button type="submit" class="btn btn-primary" style="margin-top:16px;">Continue</button>
-        </form>
-      `;
-
-      document.getElementById('namesForm').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const p1 = document.getElementById('p1').value.trim();
-        const p2 = document.getElementById('p2').value.trim();
-        if (!p1 || !p2) return;
-
-        WeddingApp.updateState((s) => {
-          s.account = { names: `${p1} & ${p2}` };
-          return s;
-        });
+    if (state.account) {
+      if (!state.account.names) {
         window.location.href = 'welcome.html';
-      });
-    }
-
-    function renderReturningUser() {
-      const nextPage = state.onboarding.complete ? 'dashboard.html' : (state.onboarding.step > 0 || Object.keys(state.onboarding.answers).length ? 'onboarding.html' : 'welcome.html');
-
-      content.innerHTML = `
-        <div class="logo-mark"><img src="icons/dog-mascot-cream.png" alt="Your Wedding Planner mascot" /></div>
-        <h1 style="margin-top: 20px; font-size: 24px;">Welcome back, ${state.account.names}!</h1>
-        <p class="tagline">Pick up right where you left off.</p>
-
-        <div class="stack">
-          <button class="btn btn-primary" id="continueBtn">Continue</button>
-        </div>
-      `;
-
-      document.getElementById('continueBtn').onclick = () => { window.location.href = nextPage; };
-    }
-
-    if (state.account && state.account.names) {
-      renderReturningUser();
-    } else {
-      renderNewUser();
+      } else if (!state.onboarding.complete) {
+        window.location.href = (state.onboarding.step > 0 || Object.keys(state.onboarding.answers).length) ? 'onboarding.html' : 'welcome.html';
+      } else {
+        window.location.href = 'dashboard.html';
+      }
     }
   </script>
 </body>
