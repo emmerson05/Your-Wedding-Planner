@@ -18,21 +18,11 @@ const WeddingApp = (() => {
     weddingDate: '',
     location: { area: '', radius: '' },
     style: { theme: '' },
-    tasks: [
-      { id: 't1', label: 'Book florist', done: true },
-      { id: 't2', label: 'Review photographers', done: true },
-      { id: 't3', label: 'Confirm menu tasting', done: false },
-      { id: 't4', label: 'Send save-the-dates', done: false },
-      { id: 't5', label: 'Choose wedding cake', done: false }
-    ],
-    budget: { total: 20000, spent: 8250 },
-    guests: { invited: 112, confirmed: 79, day: 0, evening: 0 },
-    suppliers: [
-      { id: 's1', category: 'Venue', name: 'Oakwood Manor', status: 'Booked' },
-      { id: 's2', category: 'Photographer', name: 'Lena Hart Photography', status: 'Shortlisted' },
-      { id: 's3', category: 'Florist', name: 'Bloom & Co', status: 'Contacted' },
-      { id: 's4', category: 'Caterer', name: '—', status: 'Not started' }
-    ],
+    tasks: [],
+    budget: { total: 0, spent: 0 },
+    guests: { day: 0, evening: 0 },
+    guestList: [],
+    suppliers: [],
     documents: []
   };
 

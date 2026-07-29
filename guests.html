@@ -49,16 +49,9 @@
     WeddingApp.requireAccount();
     WeddingApp.requireOnboarding();
 
-    // Ensure a guest list array exists (older sessions only stored counts)
+    // Defensive: ensure a guest list array exists (older sessions may only have stored counts)
     let state = WeddingApp.updateState((s) => {
-      if (!Array.isArray(s.guestList)) {
-        s.guestList = [
-          { name: 'John & Sarah Miller', status: 'confirmed' },
-          { name: 'The Thompson Family', status: 'confirmed' },
-          { name: 'Priya Patel', status: 'pending' },
-          { name: 'Marcus Chen', status: 'pending' }
-        ];
-      }
+      if (!Array.isArray(s.guestList)) s.guestList = [];
       return s;
     });
 
@@ -71,7 +64,6 @@
       if (!name) return;
       WeddingApp.updateState((s) => {
         s.guestList.push({ name, status: 'pending' });
-        s.guests.invited += 1;
         return s;
       });
       document.getElementById('guestName').value = '';
@@ -82,7 +74,6 @@
     function toggleStatus(idx) {
       WeddingApp.updateState((s) => {
         s.guestList[idx].status = s.guestList[idx].status === 'confirmed' ? 'pending' : 'confirmed';
-        s.guests.confirmed = s.guestList.filter(g => g.status === 'confirmed').length;
         return s;
       });
       render();
@@ -99,6 +90,13 @@
 
       const list = document.getElementById('guestListItems');
       list.innerHTML = '';
+      if (!state.guestList.length) {
+        const empty = document.createElement('div');
+        empty.className = 'tagline';
+        empty.style.cssText = 'text-align:center; padding: 12px 0;';
+        empty.textContent = 'No guests added yet — tap + to add your first one.';
+        list.appendChild(empty);
+      }
       state.guestList.forEach((g, idx) => {
         const row = document.createElement('div');
         row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--color-border);';

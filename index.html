@@ -20,19 +20,72 @@
 </head>
 <body>
   <div class="app-shell">
-    <div class="screen screen-center">
-      <div class="logo-mark"><img src="icons/dog-mascot-cream.png" alt="Your Wedding Planner mascot" /></div>
-
-      <h1 style="margin-top: 24px; font-size: 28px;">Your Wedding Planner</h1>
-      <p class="tagline">Plan your wedding with confidence.<br />Your personal wedding planning companion.</p>
-
-      <div class="stack">
-        <button class="btn btn-primary" onclick="location.href='signup.html'">Create Account</button>
-        <button class="btn btn-secondary" onclick="location.href='login.html'">Log In</button>
-      </div>
+    <div class="screen screen-center" id="screenContent">
+      <!-- populated by script -->
     </div>
   </div>
 
   <script src="js/app.js"></script>
+  <script>
+    const state = WeddingApp.getState();
+    const content = document.getElementById('screenContent');
+
+    function renderNewUser() {
+      content.innerHTML = `
+        <div class="logo-mark"><img src="icons/dog-mascot-cream.png" alt="Your Wedding Planner mascot" /></div>
+
+        <h1 style="margin-top: 20px; font-size: 24px;">Meet Alex &amp; Emma</h1>
+        <p class="tagline">They're planning their wedding with Your Wedding Planner — budget on track, guest list sorted, big day just months away.</p>
+        <p class="tagline" style="font-weight:700; color:var(--color-primary-dark); margin-top:10px;">Now it's your turn.</p>
+
+        <form id="namesForm" style="width:100%; margin-top:24px; text-align:left;">
+          <div class="field">
+            <label for="p1">Your name</label>
+            <input type="text" id="p1" placeholder="e.g. Alex" required />
+          </div>
+          <div class="field" style="margin-bottom:8px;">
+            <label for="p2">Partner's name</label>
+            <input type="text" id="p2" placeholder="e.g. Emma" required />
+          </div>
+          <button type="submit" class="btn btn-primary" style="margin-top:16px;">Continue</button>
+        </form>
+      `;
+
+      document.getElementById('namesForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const p1 = document.getElementById('p1').value.trim();
+        const p2 = document.getElementById('p2').value.trim();
+        if (!p1 || !p2) return;
+
+        WeddingApp.updateState((s) => {
+          s.account = { names: `${p1} & ${p2}` };
+          return s;
+        });
+        window.location.href = 'welcome.html';
+      });
+    }
+
+    function renderReturningUser() {
+      const nextPage = state.onboarding.complete ? 'dashboard.html' : (state.onboarding.step > 0 || Object.keys(state.onboarding.answers).length ? 'onboarding.html' : 'welcome.html');
+
+      content.innerHTML = `
+        <div class="logo-mark"><img src="icons/dog-mascot-cream.png" alt="Your Wedding Planner mascot" /></div>
+        <h1 style="margin-top: 20px; font-size: 24px;">Welcome back, ${state.account.names}!</h1>
+        <p class="tagline">Pick up right where you left off.</p>
+
+        <div class="stack">
+          <button class="btn btn-primary" id="continueBtn">Continue</button>
+        </div>
+      `;
+
+      document.getElementById('continueBtn').onclick = () => { window.location.href = nextPage; };
+    }
+
+    if (state.account && state.account.names) {
+      renderReturningUser();
+    } else {
+      renderNewUser();
+    }
+  </script>
 </body>
 </html>

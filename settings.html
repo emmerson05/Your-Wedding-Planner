@@ -38,6 +38,7 @@
           <div class="detail-row"><span>Theme</span><span id="viewTheme">—</span></div>
           <div class="detail-row"><span>Day guests</span><span id="viewDay">—</span></div>
           <div class="detail-row"><span>Evening guests</span><span id="viewEvening">—</span></div>
+          <div class="detail-row"><span>Total budget</span><span id="viewBudget">—</span></div>
         </div>
 
         <div id="editMode" style="display:none;">
@@ -66,14 +67,13 @@
             </select>
           </div>
           <div class="field"><label>Day guests</label><input type="number" id="editDay" min="0" /></div>
-          <div class="field" style="margin-bottom:16px;"><label>Evening guests</label><input type="number" id="editEvening" min="0" /></div>
+          <div class="field"><label>Evening guests</label><input type="number" id="editEvening" min="0" /></div>
+          <div class="field" style="margin-bottom:16px;"><label>Total budget (£)</label><input type="number" id="editBudget" min="0" /></div>
           <button class="btn btn-primary" onclick="saveDetails()">Save Changes</button>
         </div>
       </div>
 
-      <button class="btn btn-secondary" onclick="resetProto()">Reset Prototype Data</button>
-      <div style="height:12px;"></div>
-      <button class="btn btn-ghost" onclick="logout()">Log Out</button>
+      <button class="btn btn-secondary" onclick="resetProto()">Start Over (clears all data)</button>
     </div>
   </div>
 
@@ -113,6 +113,7 @@
       document.getElementById('viewTheme').textContent = (state.style && state.style.theme) || '—';
       document.getElementById('viewDay').textContent = state.guests.day || 0;
       document.getElementById('viewEvening').textContent = state.guests.evening || 0;
+      document.getElementById('viewBudget').textContent = state.budget.total > 0 ? WeddingApp.formatCurrency(state.budget.total) : 'Not set';
     }
 
     function toggleEdit() {
@@ -130,6 +131,7 @@
         document.getElementById('editTheme').value = (state.style && state.style.theme) || 'Not sure yet';
         document.getElementById('editDay').value = state.guests.day || 0;
         document.getElementById('editEvening').value = state.guests.evening || 0;
+        document.getElementById('editBudget').value = state.budget.total || 0;
 
         document.getElementById('editMode').style.display = 'block';
         document.getElementById('viewMode').style.display = 'none';
@@ -148,6 +150,7 @@
         s.style = { theme: document.getElementById('editTheme').value };
         s.guests.day = Number(document.getElementById('editDay').value) || 0;
         s.guests.evening = Number(document.getElementById('editEvening').value) || 0;
+        s.budget.total = Number(document.getElementById('editBudget').value) || 0;
         return s;
       });
       document.getElementById('editMode').style.display = 'none';
@@ -156,12 +159,8 @@
       renderView();
     }
 
-    function logout() {
-      localStorage.removeItem(WeddingApp.STORAGE_KEY);
-      window.location.href = 'index.html';
-    }
     function resetProto() {
-      if (confirm('This clears all prototype data (account, answers, budget etc). Continue?')) {
+      if (confirm('This clears everything (names, answers, budget, guests, tasks, suppliers, documents) so you can start fresh. Continue?')) {
         localStorage.removeItem(WeddingApp.STORAGE_KEY);
         window.location.href = 'index.html';
       }

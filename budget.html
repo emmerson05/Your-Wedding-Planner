@@ -48,8 +48,11 @@
     function render() {
       state = WeddingApp.getState();
       document.getElementById('totalLine').textContent = `${WeddingApp.formatCurrency(state.budget.spent)} / ${WeddingApp.formatCurrency(state.budget.total)}`;
-      document.getElementById('budgetFill').style.width = Math.min(100, Math.round((state.budget.spent / state.budget.total) * 100)) + '%';
-      document.getElementById('remainingLine').textContent = `${WeddingApp.formatCurrency(state.budget.total - state.budget.spent)} remaining`;
+      const pctSpent = state.budget.total > 0 ? Math.min(100, Math.round((state.budget.spent / state.budget.total) * 100)) : 0;
+      document.getElementById('budgetFill').style.width = pctSpent + '%';
+      document.getElementById('remainingLine').textContent = state.budget.total > 0
+        ? `${WeddingApp.formatCurrency(state.budget.total - state.budget.spent)} remaining`
+        : 'Set a total budget below to get started';
       document.getElementById('budgetInput').value = state.budget.total;
 
       const breakdown = [
