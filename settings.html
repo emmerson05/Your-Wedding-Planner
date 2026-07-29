@@ -25,8 +25,50 @@
       </div>
 
       <div class="card">
-        <div class="card-title">Wedding Details</div>
-        <div style="font-size:14px; color:var(--color-text-muted);">Editing your onboarding answers is coming soon.</div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <div class="card-title" style="margin-bottom:0;">Wedding Details</div>
+          <button class="btn-ghost" id="editToggle" style="border:none; background:none; color:var(--color-primary); font-weight:600; font-size:13px; cursor:pointer;" onclick="toggleEdit()">Edit</button>
+        </div>
+
+        <div id="viewMode">
+          <div class="detail-row"><span>Names</span><span id="viewNames">—</span></div>
+          <div class="detail-row"><span>Date</span><span id="viewDate">—</span></div>
+          <div class="detail-row"><span>Area</span><span id="viewArea">—</span></div>
+          <div class="detail-row"><span>Travel radius</span><span id="viewRadius">—</span></div>
+          <div class="detail-row"><span>Theme</span><span id="viewTheme">—</span></div>
+          <div class="detail-row"><span>Day guests</span><span id="viewDay">—</span></div>
+          <div class="detail-row"><span>Evening guests</span><span id="viewEvening">—</span></div>
+        </div>
+
+        <div id="editMode" style="display:none;">
+          <div class="field"><label>Names</label><input type="text" id="editNames" /></div>
+          <div class="field"><label>Date</label><input type="date" id="editDate" /></div>
+          <div class="field"><label>Area</label><input type="text" id="editArea" /></div>
+          <div class="field">
+            <label>Travel radius</label>
+            <select id="editRadius">
+              <option>Local only</option>
+              <option>Within 25 miles</option>
+              <option>Within 50 miles</option>
+              <option>Anywhere</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Theme</label>
+            <select id="editTheme">
+              <option>Classic & Elegant</option>
+              <option>Rustic & Natural</option>
+              <option>Modern & Minimal</option>
+              <option>Boho</option>
+              <option>Glamorous</option>
+              <option>Vintage</option>
+              <option>Not sure yet</option>
+            </select>
+          </div>
+          <div class="field"><label>Day guests</label><input type="number" id="editDay" min="0" /></div>
+          <div class="field" style="margin-bottom:16px;"><label>Evening guests</label><input type="number" id="editEvening" min="0" /></div>
+          <button class="btn btn-primary" onclick="saveDetails()">Save Changes</button>
+        </div>
       </div>
 
       <button class="btn btn-secondary" onclick="resetProto()">Reset Prototype Data</button>
@@ -35,12 +77,84 @@
     </div>
   </div>
 
+  <style>
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--color-border);
+      font-size: 14px;
+    }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-row span:first-child { color: var(--color-text-muted); }
+    .detail-row span:last-child { font-weight: 600; text-align: right; max-width: 60%; }
+  </style>
+
   <script src="js/app.js"></script>
   <script>
     WeddingApp.requireAccount();
-    const state = WeddingApp.getState();
-    document.getElementById('settingsNames').textContent = state.account.names || '—';
-    document.getElementById('settingsEmail').textContent = state.account.email || '';
+    let state = WeddingApp.getState();
+
+    function fmtDate(d) {
+      if (!d) return 'Not set';
+      const dt = new Date(d + 'T00:00:00');
+      return dt.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
+    }
+
+    function renderView() {
+      state = WeddingApp.getState();
+      document.getElementById('settingsNames').textContent = state.account.names || '—';
+      document.getElementById('settingsEmail').textContent = state.account.email || '';
+
+      document.getElementById('viewNames').textContent = state.account.names || '—';
+      document.getElementById('viewDate').textContent = fmtDate(state.weddingDate);
+      document.getElementById('viewArea').textContent = (state.location && state.location.area) || '—';
+      document.getElementById('viewRadius').textContent = (state.location && state.location.radius) || '—';
+      document.getElementById('viewTheme').textContent = (state.style && state.style.theme) || '—';
+      document.getElementById('viewDay').textContent = state.guests.day || 0;
+      document.getElementById('viewEvening').textContent = state.guests.evening || 0;
+    }
+
+    function toggleEdit() {
+      const editing = document.getElementById('editMode').style.display !== 'none';
+      if (editing) {
+        document.getElementById('editMode').style.display = 'none';
+        document.getElementById('viewMode').style.display = 'block';
+        document.getElementById('editToggle').textContent = 'Edit';
+      } else {
+        // populate edit fields from current state
+        document.getElementById('editNames').value = state.account.names || '';
+        document.getElementById('editDate').value = state.weddingDate || '';
+        document.getElementById('editArea').value = (state.location && state.location.area) || '';
+        document.getElementById('editRadius').value = (state.location && state.location.radius) || 'Local only';
+        document.getElementById('editTheme').value = (state.style && state.style.theme) || 'Not sure yet';
+        document.getElementById('editDay').value = state.guests.day || 0;
+        document.getElementById('editEvening').value = state.guests.evening || 0;
+
+        document.getElementById('editMode').style.display = 'block';
+        document.getElementById('viewMode').style.display = 'none';
+        document.getElementById('editToggle').textContent = 'Cancel';
+      }
+    }
+
+    function saveDetails() {
+      WeddingApp.updateState((s) => {
+        s.account.names = document.getElementById('editNames').value.trim() || s.account.names;
+        s.weddingDate = document.getElementById('editDate').value;
+        s.location = {
+          area: document.getElementById('editArea').value.trim(),
+          radius: document.getElementById('editRadius').value
+        };
+        s.style = { theme: document.getElementById('editTheme').value };
+        s.guests.day = Number(document.getElementById('editDay').value) || 0;
+        s.guests.evening = Number(document.getElementById('editEvening').value) || 0;
+        return s;
+      });
+      document.getElementById('editMode').style.display = 'none';
+      document.getElementById('viewMode').style.display = 'block';
+      document.getElementById('editToggle').textContent = 'Edit';
+      renderView();
+    }
 
     function logout() {
       localStorage.removeItem(WeddingApp.STORAGE_KEY);
@@ -52,6 +166,8 @@
         window.location.href = 'index.html';
       }
     }
+
+    renderView();
   </script>
 </body>
 </html>
