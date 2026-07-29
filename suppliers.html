@@ -13,12 +13,18 @@
   <div class="app-shell">
     <div class="topbar">
       <div class="topbar-title">Suppliers</div>
-      <div style="width:36px;"></div>
+      <button class="back-btn" onclick="openAddSupplier()">+</button>
     </div>
 
     <div class="scroll-content">
+      <div class="card" id="addSupplierCard" style="display:none;">
+        <div class="card-title">Add Supplier</div>
+        <div class="field"><input type="text" id="supplierCategory" placeholder="Category (e.g. Florist)" style="width:100%; padding:14px; border-radius:12px; border:1.5px solid var(--color-border); font-size:16px; margin-bottom:10px;" /></div>
+        <div class="field"><input type="text" id="supplierName" placeholder="Supplier name" style="width:100%; padding:14px; border-radius:12px; border:1.5px solid var(--color-border); font-size:16px;" /></div>
+        <button class="btn btn-primary" onclick="addSupplier()">Add to List</button>
+      </div>
+
       <div id="supplierList"></div>
-      <button class="btn btn-secondary" onclick="alert('AI supplier finder is a Phase 2 feature — coming after the MVP.')">+ Find a Supplier</button>
     </div>
   </div>
 
@@ -26,8 +32,8 @@
   <script>
     WeddingApp.requireAccount();
     WeddingApp.requireOnboarding();
-    const state = WeddingApp.getState();
 
+    const STATUS_CYCLE = ['Not started', 'Contacted', 'Shortlisted', 'Booked'];
     const statusColor = {
       'Booked': 'var(--color-success)',
       'Shortlisted': 'var(--color-accent)',
@@ -35,22 +41,87 @@
       'Not started': 'var(--color-text-muted)'
     };
 
-    const list = document.getElementById('supplierList');
-    state.suppliers.forEach(s => {
-      const card = document.createElement('div');
-      card.className = 'card';
-      card.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-          <div>
-            <div style="font-size:12px; color:var(--color-text-muted); font-weight:600; text-transform:uppercase; letter-spacing:0.03em;">${s.category}</div>
-            <div style="font-size:17px; font-weight:700; margin-top:4px;">${s.name}</div>
-          </div>
-          <div style="font-size:12px; font-weight:700; padding:6px 10px; border-radius:999px; background:${statusColor[s.status]}22; color:${statusColor[s.status]};">${s.status}</div>
-        </div>
-      `;
-      list.appendChild(card);
-    });
+    function uid() { return 'sup' + Math.random().toString(36).slice(2, 9); }
 
+    function openAddSupplier() {
+      document.getElementById('addSupplierCard').style.display = 'block';
+    }
+
+    function addSupplier() {
+      const category = document.getElementById('supplierCategory').value.trim();
+      const name = document.getElementById('supplierName').value.trim();
+      if (!category || !name) return;
+      WeddingApp.updateState((s) => {
+        s.suppliers.push({ id: uid(), category, name, status: 'Not started' });
+        return s;
+      });
+      document.getElementById('supplierCategory').value = '';
+      document.getElementById('supplierName').value = '';
+      document.getElementById('addSupplierCard').style.display = 'none';
+      render();
+    }
+
+    function cycleStatus(id) {
+      WeddingApp.updateState((s) => {
+        const sup = s.suppliers.find(x => x.id === id);
+        if (sup) {
+          const idx = STATUS_CYCLE.indexOf(sup.status);
+          sup.status = STATUS_CYCLE[(idx + 1) % STATUS_CYCLE.length];
+        }
+        return s;
+      });
+      render();
+    }
+
+    function deleteSupplier(id) {
+      WeddingApp.updateState((s) => {
+        s.suppliers = s.suppliers.filter(x => x.id !== id);
+        return s;
+      });
+      render();
+    }
+
+    function render() {
+      const state = WeddingApp.getState();
+      // Backfill ids for suppliers seeded before this update had id fields
+      let needsSave = false;
+      state.suppliers.forEach(s => { if (!s.id) { s.id = uid(); needsSave = true; } });
+      if (needsSave) WeddingApp.updateState((s) => state);
+
+      const list = document.getElementById('supplierList');
+      list.innerHTML = '';
+
+      if (!state.suppliers.length) {
+        const empty = document.createElement('div');
+        empty.className = 'card';
+        empty.style.cssText = 'text-align:center; padding:32px 16px;';
+        empty.innerHTML = '<div style="font-size:32px;">🏛️</div><div style="font-weight:700; margin-top:10px;">No suppliers yet</div><div class="tagline">Tap + to add your first one.</div>';
+        list.appendChild(empty);
+        return;
+      }
+
+      state.suppliers.forEach(s => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <div>
+              <div style="font-size:12px; color:var(--color-text-muted); font-weight:600; text-transform:uppercase; letter-spacing:0.03em;">${s.category}</div>
+              <div style="font-size:17px; font-weight:700; margin-top:4px;">${s.name}</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <button class="status-btn" style="font-size:12px; font-weight:700; padding:6px 10px; border-radius:999px; background:${statusColor[s.status]}22; color:${statusColor[s.status]}; border:none; cursor:pointer;">${s.status}</button>
+              <button class="del-btn" style="background:none; border:none; color:var(--color-text-muted); font-size:15px; cursor:pointer;">🗑</button>
+            </div>
+          </div>
+        `;
+        card.querySelector('.status-btn').onclick = () => cycleStatus(s.id);
+        card.querySelector('.del-btn').onclick = () => deleteSupplier(s.id);
+        list.appendChild(card);
+      });
+    }
+
+    render();
     WeddingApp.renderBottomNav('suppliers');
   </script>
 </body>
